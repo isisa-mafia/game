@@ -60,6 +60,10 @@ namespace MafiaGame.Game
                     await JoinChatRoom(gameName + "Assassins");
                 await JoinChatRoom(gameName);
                 await SendList();
+                if (GameHub.GamesList.Find(x => x.RoomName.Equals(gameName))._playersLimit == 0)
+                {
+                    await Clients.Group(gameName).SendAsync("GameReady");
+                }
             }
             catch (ArgumentException ae)
             {
@@ -81,6 +85,11 @@ namespace MafiaGame.Game
                     await LeaveChatRoom(gameName + "Assassins");
                 GameHub.RemovePlayerFromGame(user, gameName);
                 await LeaveChatRoom(gameName);
+                foreach (var player in GameHub.GamesList.Find(x => x.RoomName == gameName).Players)
+                {
+                    player.Ready = false;
+                }
+
                 await SendList();
             }
             catch (ArgumentException ae)
@@ -92,6 +101,25 @@ namespace MafiaGame.Game
             {
                 var client = Clients.Caller;
                 await SendError(client, "LeaveGame: " + e.Message);
+            }
+        }
+
+        public async Task PlayerReady(string user, string groupName)
+        {
+            GameHub.GamesList.Find(x => x.RoomName == groupName).Players.Find(x => x.Name == user).Ready = true;
+            bool ok = true;
+            foreach (var i in GameHub.GamesList.Find(x => x.RoomName == groupName).Players)
+            {
+                if (i.Ready == false)
+                {
+                    ok = false;
+                    break;
+                }
+            }
+
+            if (ok)
+            {
+                await SendMessageGroup(user, groupName, "Game ready");
             }
         }
 

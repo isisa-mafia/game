@@ -53,14 +53,14 @@ namespace MafiaGame.Game
         public string RoomName { get; }
         public List<Player> Players { get; }
         private readonly List<Type> _remainingRoles;
-        private int _playersLimit;
+        public int _playersLimit;
 
         public Game(string firstPlayer, string roomName, string connectionId)
         {
             RoomName = roomName;
-            _playersLimit = 5;
+            _playersLimit = 4;
             _remainingRoles = new List<Type>
-                {Type.Assassin, Type.Assassin, Type.Cop, Type.Civilian, Type.Civilian, Type.Civilian};
+                {Type.Assassin, Type.Assassin, Type.Cop, Type.Civilian, Type.Civilian};
             var random = new Random();
             var index = random.Next(_remainingRoles.Count);
             Players = new List<Player> {new Player(firstPlayer, _remainingRoles[index], connectionId)};
@@ -88,6 +88,7 @@ namespace MafiaGame.Game
                 throw new ArgumentException("There is no player with this name", name);
             _remainingRoles.Add(Players[index].Role);
             Players.RemoveAt(index);
+            _playersLimit++;
         }
 
         public void KillPlayer(string name)
@@ -114,6 +115,7 @@ namespace MafiaGame.Game
         public Type Role { get; }
         public bool Alive { get; set; }
         public string ConnectionId { get; set; }
+        public bool Ready { get; set; }
 
         public Player(string name, Type role, string ConnectionId)
         {
@@ -121,6 +123,7 @@ namespace MafiaGame.Game
             Role = role;
             Alive = true;
             this.ConnectionId = ConnectionId;
+            Ready = false;
         }
     }
 

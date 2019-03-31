@@ -23,6 +23,31 @@ connection.on("ReceiveMessageGroup",
     });
 connection.on("ReceiveErr", (errMessage) => { console.log(errMessage); });
 
+connection.on("GameReady",
+    () => {
+        var cont = document.getElementById("ceva");
+        var el = document.createElement("button");
+        el.innerHTML = "Ready?";
+        var user = document.getElementById("userInput").value;
+        var group = document.getElementById("groupInput").value;
+        var time = setTimeout(() => {
+                var user = document.getElementById("userInput").value;
+                var gameName = document.getElementById("groupInput").value;
+                connection.invoke("LeaveGame", user, gameName).catch(function(err) {
+                    return console.error(err.toString());
+                });
+                el.parentNode.removeChild(el);
+
+            },
+            10000);
+        el.onclick = () => {
+            connection.invoke("PlayerReady",user,group);
+            el.parentNode.removeChild(el);
+            clearTimeout(time);
+        };
+        cont.appendChild(el);
+    });
+
 connection.on("ReceiveGames",
     function(list) {
         console.log(list);
@@ -62,7 +87,7 @@ document.getElementById("sendToGroupButton").addEventListener("click",
     function(event) {
         var user = document.getElementById("userInput").value;
         var message = document.getElementById("messageInput").value;
-        var group = document.getElementById("messageGroupInput").value;
+        var group = document.getElementById("groupInput").value;
         connection.invoke("SendMessageGroup", user, group, message).catch(function(err) {
             return console.error(err.toString());
         });
@@ -72,7 +97,7 @@ document.getElementById("sendToAssassinsGroupButton").addEventListener("click",
     function(event) {
         var user = document.getElementById("userInput").value;
         var message = document.getElementById("messageInput").value;
-        var group = document.getElementById("messageGroupInput").value;
+        var group = document.getElementById("groupInput").value;
         connection.invoke("SendMessageToAssassinsGroup", user, group, message).catch(function(err) {
             return console.error(err.toString());
         });
@@ -80,8 +105,8 @@ document.getElementById("sendToAssassinsGroupButton").addEventListener("click",
     });
 document.getElementById("groupButton").addEventListener("click",
     function(event) {
-        var user = document.getElementById("userInput2").value;
-        var gameName = document.getElementById("createGroupInput").value;
+        var user = document.getElementById("userInput").value;
+        var gameName = document.getElementById("groupInput").value;
         connection.invoke("CreateGame", user, gameName).catch(function(err) {
             return console.error(err.toString());
         });
@@ -89,8 +114,8 @@ document.getElementById("groupButton").addEventListener("click",
     });
 document.getElementById("joinGroupButton").addEventListener("click",
     function(event) {
-        var user = document.getElementById("userInput3").value;
-        var gameName = document.getElementById("joinGroupInput").value;
+        var user = document.getElementById("userInput").value;
+        var gameName = document.getElementById("groupInput").value;
         connection.invoke("JoinGame", user, gameName).catch(function(err) {
             return console.error(err.toString());
         });
@@ -98,8 +123,8 @@ document.getElementById("joinGroupButton").addEventListener("click",
     });
 document.getElementById("leaveGroupButton").addEventListener("click",
     function(event) {
-        var user = document.getElementById("userInput4").value;
-        var gameName = document.getElementById("leaveGroupInput").value;
+        var user = document.getElementById("userInput").value;
+        var gameName = document.getElementById("groupInput").value;
         connection.invoke("LeaveGame", user, gameName).catch(function(err) {
             return console.error(err.toString());
         });
