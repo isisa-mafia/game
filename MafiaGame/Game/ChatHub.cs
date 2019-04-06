@@ -42,7 +42,9 @@ namespace MafiaGame.Game
                 if (GameHub.PlayerIsAssassin(user, gameName))
                     await JoinChatRoom(gameName + "Assassins");
                 await JoinChatRoom(gameName);
-                await SendList();
+                var game = GameHub.GetGame(gameName);
+                await Clients.Caller.SendAsync("IJoinedGame", game);
+                await SendListToAll();
             }
             catch (Exception ae)
             {
@@ -59,8 +61,8 @@ namespace MafiaGame.Game
                 if (GameHub.PlayerIsAssassin(user, gameName))
                     await JoinChatRoom(gameName + "Assassins");
                 await JoinChatRoom(gameName);
-                await SendList();
-                if (GameHub.GamesList.Find(x => x.RoomName.Equals(gameName))._playersLimit == 0)
+                await SendListToAll();
+                if (GameHub.GamesList.Find(x => x.Name.Equals(gameName))._playersLimit == 0)
                 {
                     await Clients.Group(gameName).SendAsync("GameReady");
                 }
@@ -85,12 +87,12 @@ namespace MafiaGame.Game
                     await LeaveChatRoom(gameName + "Assassins");
                 GameHub.RemovePlayerFromGame(user, gameName);
                 await LeaveChatRoom(gameName);
-                foreach (var player in GameHub.GamesList.Find(x => x.RoomName == gameName).Players)
+                foreach (var player in GameHub.GamesList.Find(x => x.Name == gameName).Players)
                 {
                     player.Ready = false;
                 }
 
-                await SendList();
+                await SendListToAll();
             }
             catch (ArgumentException ae)
             {
@@ -106,9 +108,9 @@ namespace MafiaGame.Game
 
         public async Task PlayerReady(string user, string groupName)
         {
-            GameHub.GamesList.Find(x => x.RoomName == groupName).Players.Find(x => x.Name == user).Ready = true;
+            GameHub.GamesList.Find(x => x.Name == groupName).Players.Find(x => x.Name == user).Ready = true;
             bool ok = true;
-            foreach (var i in GameHub.GamesList.Find(x => x.RoomName == groupName).Players)
+            foreach (var i in GameHub.GamesList.Find(x => x.Name == groupName).Players)
             {
                 if (i.Ready == false)
                 {
@@ -123,7 +125,7 @@ namespace MafiaGame.Game
             }
         }
 
-        public async Task SendList()
+        public async Task SendListToAll()
         {
             await Clients.All.SendAsync("ReceiveGames", GameHub.GamesList);
         }
@@ -133,7 +135,7 @@ namespace MafiaGame.Game
             await client.SendAsync("ReceiveErr", errMessage);
         }
 
-        public async Task UserRequestList()
+        public async Task UserRequestsList()
         {
             await Clients.Caller.SendAsync("ReceiveGames", GameHub.GamesList);
         }

@@ -18,14 +18,14 @@ namespace MafiaGame.Game
 
         public void CreateNewGame(string playerName, string gameName, string connectionId)
         {
-            if (GamesList.Exists(x => x.RoomName == gameName))
+            if (GamesList.Exists(x => x.Name == gameName))
                 throw new ArgumentException("A game with this name already exists", gameName);
             GamesList.Add(new Game(playerName, gameName, connectionId));
         }
 
         public void AddPlayerToGame(string playerName, string gameName, string connectionId)
         {
-            var game = GamesList.Find(x => x.RoomName == gameName);
+            var game = GamesList.Find(x => x.Name == gameName);
             if (game == null)
                 throw new ArgumentException("There is no game with this name", gameName);
             game.AddPlayer(playerName, connectionId);
@@ -33,7 +33,7 @@ namespace MafiaGame.Game
 
         public void RemovePlayerFromGame(string playerName, string gameName)
         {
-            var game = GamesList.Find(x => x.RoomName == gameName);
+            var game = GamesList.Find(x => x.Name == gameName);
             if (game == null)
                 throw new ArgumentException("There is no game with this name", gameName);
             game.RemovePlayer(playerName);
@@ -41,29 +41,36 @@ namespace MafiaGame.Game
 
         public bool PlayerIsAssassin(string playerName, string gameName)
         {
-            var game = GamesList.Find(x => x.RoomName == gameName);
+            var game = GamesList.Find(x => x.Name == gameName);
             if (game == null)
                 throw new ArgumentException("There is no game with this name", gameName);
             return game.PlayerIsAssassin(playerName);
+        }
+        public Game GetGame(string gameName)
+        {
+            var game = GamesList.Find(x => x.Name == gameName);
+            if (game == null)
+                throw new ArgumentException("There is no game with this name", gameName);
+            return game;
         }
     }
 
     public class Game
     {
-        public string RoomName { get; }
+        public string Name { get; }
         public List<Player> Players { get; }
         private readonly List<Type> _remainingRoles;
         public int _playersLimit;
 
         public Game(string firstPlayer, string roomName, string connectionId)
         {
-            RoomName = roomName;
+            Name = roomName;
             _playersLimit = 4;
             _remainingRoles = new List<Type>
                 {Type.Assassin, Type.Assassin, Type.Cop, Type.Civilian, Type.Civilian};
             var random = new Random();
             var index = random.Next(_remainingRoles.Count);
-            Players = new List<Player> {new Player(firstPlayer, _remainingRoles[index], connectionId)};
+            Players = new List<Player> { new Player(firstPlayer, _remainingRoles[index], connectionId) };
             _remainingRoles.RemoveAt(index);
         }
 
