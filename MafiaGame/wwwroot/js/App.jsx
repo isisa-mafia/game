@@ -6,7 +6,7 @@ import Lobby from "./Components/Lobby"
 export default class App extends React.Component {
     constructor(props) {
         super(props);
-        this.state = { username: "stefan" };
+        this.state = { username: "" };
         this.onChildSubmit = this.onChildSubmit.bind(this);
         this.greeting = this.greeting.bind(this);
     }
