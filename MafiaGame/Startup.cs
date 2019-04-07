@@ -44,7 +44,7 @@ namespace MafiaGame
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                // app.UseWebpackDevMiddleware(new Microsoft.AspNetCore.SpaServices.Webpack.WebpackDevMiddlewareOptions { HotModuleReplacement = true });
+                app.UseWebpackDevMiddleware(new Microsoft.AspNetCore.SpaServices.Webpack.WebpackDevMiddlewareOptions { ConfigFile = "webpack.dev.js", HotModuleReplacement = true });
             }
             else
             {
@@ -55,7 +55,7 @@ namespace MafiaGame
             app.UseHttpsRedirection();
             app.UseDefaultFiles();
             app.UseStaticFiles();
-            app.UseCookiePolicy();
+            //app.UseCookiePolicy();
             app.UseSignalR(routes => { routes.MapHub<ChatHub>("/chatHub"); });
 
         }

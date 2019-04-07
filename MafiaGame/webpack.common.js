@@ -1,20 +1,19 @@
 const path = require('path');
 
 module.exports = {
-    mode: 'development',
-    entry: { main: './wwwroot/js/index.js' },
+    entry: { main: './wwwroot/src/js/index.js' },
     output: {
-        path: path.resolve(__dirname, './wwwroot/js/dist'),
+        path: path.resolve(__dirname, './wwwroot/dist'),
         filename: 'bundle.js',
         publicPath: 'dist/'
     },
-    watch: false,
 
     module: {
         rules: [
             {
                 test: /\.(js|jsx)/,
                 exclude: /node_modules/,
+                include: path.resolve(__dirname, './wwwroot/src/js'),
                 use: {
                     loader: 'babel-loader',
                     options: {
@@ -23,12 +22,14 @@ module.exports = {
                 }
             },
             {
-                test: /\.css$/,
-                use: ['style-loader', 'css-loader']
+                test: /\.(png|svg|jpg|gif)$/,
+                use: [
+                    'file-loader'
+                ]
             }
         ]
     },
     resolve: {
-        extensions: ['*', '.js', '.jsx']
+        extensions: ['*', '.js', '.jsx', '.css']
     }
 }
