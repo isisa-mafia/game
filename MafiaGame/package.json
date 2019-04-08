@@ -30,7 +30,7 @@
         "reactstrap": "^8.0.0"
     },
     "scripts": {
-        "build": "webpack --config webpack.prod.js",
-        "start": "webpack --config webpack.dev.js"
+        "prod": "webpack --config webpack.prod.js && dotnet run",
+        "dev": "webpack --config webpack.dev.js && dotnet run --launch-profile Development"
     }
 }
