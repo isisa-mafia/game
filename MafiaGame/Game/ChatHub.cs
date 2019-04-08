@@ -43,7 +43,7 @@ namespace MafiaGame.Game
                     await JoinChatRoom(gameName + "Assassins");
                 await JoinChatRoom(gameName);
                 var game = GameHub.GetGame(gameName);
-                await Clients.Caller.SendAsync("IJoinedGame", game);
+                await Clients.Group(gameName).SendAsync("IJoinedGame", game);
                 await SendListToAll();
             }
             catch (Exception ae)
@@ -61,6 +61,7 @@ namespace MafiaGame.Game
                 if (GameHub.PlayerIsAssassin(user, gameName))
                     await JoinChatRoom(gameName + "Assassins");
                 await JoinChatRoom(gameName);
+                await Clients.Group(gameName).SendAsync("IJoinedGame", GameHub.GetGame(gameName));
                 await SendListToAll();
                 if (GameHub.GamesList.Find(x => x.Name.Equals(gameName))._playersLimit == 0)
                 {
@@ -87,11 +88,19 @@ namespace MafiaGame.Game
                     await LeaveChatRoom(gameName + "Assassins");
                 GameHub.RemovePlayerFromGame(user, gameName);
                 await LeaveChatRoom(gameName);
-                foreach (var player in GameHub.GamesList.Find(x => x.Name == gameName).Players)
+                var game = GameHub.GetGame(gameName);
+                if (game.Players.Count == 0)
                 {
-                    player.Ready = false;
+                    GameHub.GamesList.Remove(game);
                 }
-
+                else
+                {
+                    await Clients.Group(gameName).SendAsync("IJoinedGame", GameHub.GetGame(gameName));
+                    foreach (var player in game.Players)
+                    {
+                        player.Ready = false;
+                    }
+                }
                 await SendListToAll();
             }
             catch (ArgumentException ae)
