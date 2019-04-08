@@ -30,7 +30,8 @@ export default class Lobby extends Component {
         connection.on("ReceiveGames", list => this.setState({ gameList: list }));
         connection.on("ReceiveMessageGroup", (user, _, message) => this.setState({ messages: this.state.messages.concat(user + " says: " + message) }));
         connection.on("IJoinedGame", game => this.setState({ currentGame: game }));
-        connection.on("ReceiveErr", message => console.log(message));
+        if (process.env.NODE_ENV !== 'production')
+            connection.on("ReceiveErr", message => console.log(message));
         connection.onclose(() => { this.state.currentGame !== null && this.leaveGame(); });
     }
     createGame() {

@@ -31,6 +31,7 @@
     },
     "scripts": {
         "prod": "webpack --config webpack.prod.js && dotnet run",
-        "dev": "webpack --config webpack.dev.js && dotnet run --launch-profile Development"
+        "dev": "webpack --config webpack.dev.js && dotnet run --launch-profile Development",
+        "build": "webpack --config webpack.prod.js"
     }
 }
