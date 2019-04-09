@@ -1,7 +1,12 @@
 const path = require('path');
 
 module.exports = {
-    entry: { main: './wwwroot/src/js/index.js' },
+    entry: {
+        main: [
+            '@babel/polyfill',
+            './wwwroot/src/js/index.js'
+        ]
+    },
     output: {
         path: path.resolve(__dirname, './wwwroot/dist'),
         filename: 'bundle.js',

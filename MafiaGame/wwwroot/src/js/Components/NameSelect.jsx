@@ -36,7 +36,7 @@ class NameSelect extends React.Component {
     render() {
         return (
             <div className="w-100" style={{ height: 90 + "%", display: "flex", justifyContent: "center", alignItems: "center" }}>
-                <Button color="primary" size="lg" className="mx-auto w-25 h-25"
+                <Button color="primary" size="lg" className="w-25 h-25"
                     style={{ fontSize: 3 + "rem" }}
                     onClick={this.toggle}>{this.props.buttonLabel}
                 </Button>

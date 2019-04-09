@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import { Col, Row, Button, Form, Label, Input } from 'reactstrap'
 import * as signalR from "@aspnet/signalr"
+// import '@babel/polyfill'
 
 export default class Lobby extends Component {
     constructor(props) {
