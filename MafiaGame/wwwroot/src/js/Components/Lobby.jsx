@@ -62,7 +62,7 @@ export default class Lobby extends Component {
     gamesList() {
         if (this.state.gameList.length !== 0) {
             const games = this.state.gameList;
-            const list = games.map((game, index) => <li key={game.name + index}>{game.name}<Button color="primary" onClick={(e) => this.joinGame(game.name, e)}>Join game</Button></li>);
+            const list = games.map((game, index) => <li key={game.name + index}>{game.name}&nbsp;<Button color="primary" onClick={(e) => this.joinGame(game.name, e)}>Join game</Button></li>);
             return (<ul>{list}</ul>);
         }
         return <h1>There are no active games</h1>
@@ -129,8 +129,6 @@ export default class Lobby extends Component {
                             </div>
                         </div>
                     }
-
-
                 </Col>
             </Row>
         )

@@ -20,7 +20,8 @@ class NameSelect extends React.Component {
             invalid: false
         }));
     }
-    submit() {
+    submit(e) {
+        e.preventDefault();
         var usernameinput = document.getElementById("username");
         if (usernameinput.value.length !== 0) {
             this.props.onSubmit(usernameinput.value);
@@ -42,7 +43,7 @@ class NameSelect extends React.Component {
                 <Modal isOpen={this.state.modal} toggle={this.toggle} className={this.props.className}>
                     <ModalHeader toggle={this.toggle}>Choose a name</ModalHeader>
                     <ModalBody>
-                        <Form id="userForm">
+                        <Form id="userForm" onSubmit={this.submit}>
                             <Label for="username">Username</Label>
                             <Input id="username" invalid={this.state.invalid} />
                         </Form>
