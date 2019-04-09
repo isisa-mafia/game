@@ -14,11 +14,11 @@ export default class App extends React.Component {
     }
     render() {
         return (
-            <React.Fragment>
+            <div className="d-flex flex-column h-100">
                 <Header />
                 {this.state.username.length === 0 ?
                     <NameSelect buttonLabel="Play" onSubmit={this.onChildSubmit} /> : <Lobby username={this.state.username} />}
-            </React.Fragment>
+            </div>
         );
     }
 }
