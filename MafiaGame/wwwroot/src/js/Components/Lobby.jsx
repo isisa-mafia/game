@@ -48,7 +48,8 @@ export default class Lobby extends Component {
             connection.invoke("JoinGame", this.state.username, gameName);
         }
     }
-    submit() {
+    submit(e) {
+        e.preventDefault();
         var groupname = document.getElementById("groupname").value;
         if (groupname.length !== 0) {
             this.state.connection.invoke("CreateGame", this.state.username, groupname);
@@ -76,7 +77,8 @@ export default class Lobby extends Component {
         const list = messages.map((message, index) => <li key={'message' + index}>{message}</li>);
         return (<ul>{list}</ul>);
     }
-    sendMessage() {
+    sendMessage(e) {
+        e.preventDefault();
         var message = document.getElementById('messageInput');
         if (message.value.length !== 0) {
             this.state.connection.invoke("SendMessageGroup", this.state.username, this.state.currentGame.name, message.value);
@@ -96,28 +98,35 @@ export default class Lobby extends Component {
                     {this.state.createGame === true
                         ?
                         <div>
-                            <Form id="groupForm">
+                            <Form id="groupForm" className="d-flex align-items-center" onSubmit={this.submit}>
                                 <Label for="groupname">Group name</Label>
-                                <Input id="groupname" invalid={this.state.invalid} />
-                            </Form>
-                            <Button color="primary" size="lg" onClick={this.submit}>
-                                Create
+                                <Input id="groupname" className="flex-grow-1" invalid={this.state.invalid} />
+                                &nbsp;
+                                <Button color="primary" size="lg" >
+                                    Create
                             </Button>
+                            </Form>
                         </div>
                         : this.state.currentGame !== null &&
-                        <div>
-                            <h1>Game name: {this.state.currentGame.name}</h1>
-                            <Button color="danger" size="lg" onClick={this.leaveGame}>
-                                Leave game
+                        <div className="d-flex flex-column" style={{ height: 100 + '%' }}>
+                            <div className="d-flex justify-content-between">
+                                <h1>Game name: {this.state.currentGame.name}</h1>
+                                <Button color="danger" size="lg" onClick={this.leaveGame}>
+                                    Leave game
                             </Button>
+                            </div>
                             <h1>Players</h1>
                             {this.playersList()}
-                            <Form >
-                                <Input id="messageInput" invalid={this.state.invalid} />
-                            </Form>
-                            <Button color="primary" onClick={this.sendMessage}>Send</Button>
-                            {' '}
-                            {this.messagesList()}
+                            <div className="chat flex-grow-1 d-flex flex-column-reverse">
+                                <Form className="d-flex" onSubmit={this.sendMessage}>
+                                    &nbsp;
+                                    <Input id="messageInput" className="flex-fill" invalid={this.state.invalid} />
+                                    &nbsp;
+                                    <Button color="primary">Send</Button>
+                                    &nbsp;
+                                </Form>
+                                {this.messagesList()}
+                            </div>
                         </div>
                     }
 
