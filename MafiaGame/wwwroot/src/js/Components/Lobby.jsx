@@ -36,7 +36,8 @@ export default class Lobby extends Component {
         connection.onclose(() => { this.state.currentGame !== null && this.leaveGame(); });
     }
     createGame() {
-        this.setState({ createGame: true });
+        if (this.state.currentGame === null)
+            this.setState({ createGame: true });
     }
     leaveGame() {
         var connection = this.state.connection;
