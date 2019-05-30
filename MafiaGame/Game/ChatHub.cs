@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 
@@ -63,7 +64,7 @@ namespace MafiaGame.Game
                 await JoinChatRoom(gameName);
                 await Clients.Group(gameName).SendAsync("IJoinedGame", GameHub.GetGame(gameName));
                 await SendListToAll();
-                if (GameHub.GamesList.Find(x => x.Name.Equals(gameName))._playersLimit == 0)
+                if (GameHub.GamesList.Find(x => x.Name.Equals(gameName)).PlayersLimit == 0)
                 {
                     await Clients.Group(gameName).SendAsync("GameReady");
                 }
@@ -101,6 +102,7 @@ namespace MafiaGame.Game
                         player.Ready = false;
                     }
                 }
+
                 await SendListToAll();
             }
             catch (ArgumentException ae)
@@ -118,20 +120,37 @@ namespace MafiaGame.Game
         public async Task PlayerReady(string user, string groupName)
         {
             GameHub.GamesList.Find(x => x.Name == groupName).Players.Find(x => x.Name == user).Ready = true;
-            bool ok = true;
+            var ok = true;
             foreach (var i in GameHub.GamesList.Find(x => x.Name == groupName).Players)
             {
-                if (i.Ready == false)
-                {
-                    ok = false;
-                    break;
-                }
+                if (i.Ready) continue;
+                ok = false;
+                break;
             }
 
             if (ok)
             {
-                await SendMessageGroup(user, groupName, "Game ready");
+                await StartGame(groupName);
             }
+        }
+
+        public async Task StartGame(string groupName)
+        {
+            await Clients.Group(groupName).SendAsync("StartGame");
+            var assassins = new List<Player>();
+            var targets = new List<Player>();
+            foreach (var player in GameHub.GetGame(groupName).Players)
+            {
+                if (player.GetRole() == Type.Assassin)
+                    assassins.Add(player);
+                else
+                    targets.Add(player);
+                if (player.GetRole() == Type.Cop)
+                    await Clients.Client(player.ConnectionId).SendAsync("YouAreCop");
+
+            }
+
+            await SendTargetsToAssassins(assassins, groupName);
         }
 
         public async Task SendListToAll()
@@ -157,6 +176,50 @@ namespace MafiaGame.Game
         public async Task LeaveChatRoom(string roomName)
         {
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomName);
+        }
+
+        public async Task SendTargetsToAssassins(List<Player> targets, string groupName)
+        {
+            await Clients.Group(groupName + "Assassins").SendAsync("GetTargets", targets);
+        }
+
+        public async Task KillTarget(string killer, string target, string groupName)
+        {
+            if (GameHub.GetGame(groupName).Night && GameHub.GetGame(groupName).PlayerIsAssassin(killer) ||
+                !GameHub.GetGame(groupName).Night && !GameHub.GetGame(groupName).PlayerIsCop(killer))
+            {
+                GameHub.GetGame(groupName).KillPlayer(target);
+                await Clients.Group(groupName).SendAsync("GetPlayers", GameHub.GetGame(groupName).Players);
+                if (!GameHub.GetGame(groupName).AssassinAlive)
+                    await CopWins(groupName);
+                else if (!GameHub.GetGame(groupName).CopAlive)
+                {
+                    await AssassinsWin(groupName);
+                }
+                else
+                {
+                    await DayChanged(groupName);
+                }
+            }
+            else
+            {
+                await Clients.Caller.SendAsync("ReceiveErr", "Is not your turn");
+            }
+        }
+
+        public async Task AssassinsWin(string groupName)
+        {
+            await Clients.Group(groupName).SendAsync("AssassinsWin");
+        }
+
+        public async Task CopWins(string groupName)
+        {
+            await Clients.Group(groupName).SendAsync("CopWins");
+        }
+
+        public async Task DayChanged(string groupName)
+        {
+            await Clients.Group(groupName).SendAsync("DayChanged", GameHub.GetGame(groupName));
         }
     }
 }
