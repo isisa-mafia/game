@@ -4,7 +4,7 @@
 
 # Mafia Game
 
-[Mafia Game](https://mafia-game.azurewebsites.net/) is a rudimentary implementation of the Mafia party game, using C#, SignalR and React.
+[Mafia Game](https://mafia-game.azurewebsites.net/) is a rudimentary implementation of the Mafia party game, using C#, SignalR and ReactJs.
 
 ## Requirements
 
