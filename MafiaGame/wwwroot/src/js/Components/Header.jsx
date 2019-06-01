@@ -44,7 +44,7 @@ export default class Header extends React.Component {
                                 About
                             </DropdownToggle>
                             <DropdownMenu right>
-                                <DropdownItem href="https://github.com/isisa-mafia/game/Documentation/">
+                                <DropdownItem href="https://github.com/isisa-mafia/game/tree/master/Documentation">
                                     Documentation
                                 </DropdownItem>
                                 <DropdownItem href="https://en.wikipedia.org/wiki/Mafia_%28party_game%29">
