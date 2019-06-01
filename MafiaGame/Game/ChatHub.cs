@@ -186,7 +186,7 @@ namespace MafiaGame.Game
         public async Task KillTarget(string killer, string target, string groupName)
         {
             if (GameHub.GetGame(groupName).Night && GameHub.GetGame(groupName).PlayerIsAssassin(killer) ||
-                !GameHub.GetGame(groupName).Night && !GameHub.GetGame(groupName).PlayerIsCop(killer))
+                !GameHub.GetGame(groupName).Night && GameHub.GetGame(groupName).PlayerIsCop(killer))
             {
                 GameHub.GetGame(groupName).KillPlayer(target);
                 await Clients.Group(groupName).SendAsync("GetPlayers", GameHub.GetGame(groupName).Players);
@@ -209,11 +209,13 @@ namespace MafiaGame.Game
 
         public async Task AssassinsWin(string groupName)
         {
+            GameHub.GamesList.Remove(GameHub.GetGame(groupName));
             await Clients.Group(groupName).SendAsync("AssassinsWin");
         }
 
         public async Task CopWins(string groupName)
         {
+            GameHub.GamesList.Remove(GameHub.GetGame(groupName));
             await Clients.Group(groupName).SendAsync("CopWins");
         }
 

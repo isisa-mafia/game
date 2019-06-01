@@ -15,6 +15,7 @@ export default class App extends React.Component {
         };
         this.onChildSubmit = this.onChildSubmit.bind(this);
         this.startGame = this.startGame.bind(this);
+        this.endGame = this.endGame.bind(this);
     }
 
     onChildSubmit(username) {
@@ -29,6 +30,14 @@ export default class App extends React.Component {
             game: game
         });
     }
+    endGame() {
+        this.setState({
+            gameStarted: false,
+            connection: null,
+            game: null 
+        });
+
+    }
 
     render() {
         return (
@@ -36,10 +45,10 @@ export default class App extends React.Component {
                 <Header/>
                 {this.state.gameStarted === false
                     ? (this.state.username.length === 0
-                        ? <NameSelect buttonLabel="Play" onSubmit={this.onChildSubmit}/>
-                        : <Lobby username={this.state.username} startGame={this.startGame}/>)
+                        ? <NameSelect buttonLabel="Play" onSubmit={this.onChildSubmit} />
+                        : <Lobby username={this.state.username} startGame={this.startGame} />)
                     : <Game connection={this.state.connection} username={this.state.username}
-                            game={this.state.game}/>
+                        game={this.state.game} endGame={this.endGame}/>
                 }
             </div>
         );
