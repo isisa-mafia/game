@@ -22,15 +22,17 @@ export default class Header extends React.Component {
             isOpen: false
         };
     }
+
     toggle() {
         this.setState({
             isOpen: !this.state.isOpen
         });
     }
+
     render() {
         return (
             <Navbar color="dark" dark expand="md" style={{}}>
-                <NavbarToggler onClick={this.toggle} />
+                <NavbarToggler onClick={this.toggle}/>
                 <NavbarBrand href="/">MafiaGame</NavbarBrand>
                 <Collapse isOpen={this.state.isOpen} navbar>
                     <Nav className="ml-auto" navbar>
@@ -40,18 +42,14 @@ export default class Header extends React.Component {
                         <UncontrolledDropdown nav inNavbar>
                             <DropdownToggle nav caret color="dark">
                                 About
-                                </DropdownToggle>
+                            </DropdownToggle>
                             <DropdownMenu right>
-                                <DropdownItem href="/documentation">
+                                <DropdownItem href="https://github.com/isisa-mafia/game/">
                                     Documentation
-                                    </DropdownItem>
-                                <DropdownItem>
+                                </DropdownItem>
+                                <DropdownItem href="https://en.wikipedia.org/wiki/Mafia_%28party_game%29">
                                     About the game
-                                    </DropdownItem>
-                                <DropdownItem divider />
-                                <DropdownItem>
-                                    Whatever
-                                    </DropdownItem>
+                                </DropdownItem>
                             </DropdownMenu>
                         </UncontrolledDropdown>
                     </Nav>

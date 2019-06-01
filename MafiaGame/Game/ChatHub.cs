@@ -280,7 +280,7 @@ namespace MafiaGame.Game
         }
 
         /// <summary>
-        /// Announces the group that the assassin won
+        /// Announces the group that the assassin won and all the clients that the game is over
         /// </summary>
         /// <param name="groupName">The name of the group which is to be announced</param>
         /// <returns></returns>
@@ -288,10 +288,11 @@ namespace MafiaGame.Game
         {
             GameHub.GamesList.Remove(GameHub.GetGame(groupName));
             await Clients.Group(groupName).SendAsync("AssassinsWin");
+            await SendListToAll();
         }
 
         /// <summary>
-        /// Announces the group that the civilians won
+        /// Announces the group that the civilians won and all the clients that the game is over
         /// </summary>
         /// <param name="groupName">The name of the group which is to be announced</param>
         /// <returns></returns>
@@ -299,6 +300,7 @@ namespace MafiaGame.Game
         {
             GameHub.GamesList.Remove(GameHub.GetGame(groupName));
             await Clients.Group(groupName).SendAsync("CopWins");
+            await SendListToAll();
         }
 
         /// <summary>
