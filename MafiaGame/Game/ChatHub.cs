@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 
@@ -7,34 +6,39 @@ namespace MafiaGame.Game
 {
     public class ChatHub : Hub
     {
-        public static GameHub GameHub = new GameHub();
+        private static readonly GameHub GameHub = new GameHub();
 
+        /// <summary>
+        /// Sends a message to all connected clients
+        /// </summary>
+        /// <param name="user">Sender's name</param>
+        /// <param name="message">Message to be send</param>
+        /// <returns></returns>
         public async Task SendMessage(string user, string message)
         {
             await Clients.All.SendAsync("ReceiveMessage", user, message);
         }
 
+        /// <summary>
+        /// Sends a message to all clients in a group
+        /// </summary>
+        /// <param name="user">Sender's name</param>
+        /// <param name="groupName">The name of the group which is to receive the message</param>
+        /// <param name="message">Message to be send</param>
+        /// <returns></returns>
         public async Task SendMessageGroup(string user, string groupName, string message)
         {
             await Clients.Group(groupName).SendAsync("ReceiveMessageGroup", user, groupName, message);
         }
 
-        public async Task SendMessageToAssassinsGroup(string user, string groupName, string message)
-        {
-            try
-            {
-                if (GameHub.PlayerIsAssassin(user, groupName))
-                    await Clients.Group(groupName + "Assassins")
-                        .SendAsync("ReceiveMessageGroup", "Assassin " + user, groupName, message);
-                else await Clients.Caller.SendAsync("ReceiveErr", "You are not an assassin");
-            }
-            catch (Exception ae)
-            {
-                var client = Clients.Caller;
-                await SendError(client, "SendMessageToAssassinsGroup: " + ae.Message);
-            }
-        }
-
+        /// <summary>
+        /// Creates a new game and puts the creator in it as the first player.
+        /// Announces the creator that he joined the game.
+        /// Announces all the connected players about the new game.
+        /// </summary>
+        /// <param name="user">The name of the player</param>
+        /// <param name="gameName">The name of the game which is to be created</param>
+        /// <returns></returns>
         public async Task CreateGame(string user, string gameName)
         {
             try
@@ -54,13 +58,19 @@ namespace MafiaGame.Game
             }
         }
 
+        /// <summary>
+        /// Method called by the client when he wants to join a game.
+        /// If the new number of players in the game is 0, initializes a ready check to the players.
+        /// Announces all the clients about the change.
+        /// </summary>
+        /// <param name="user">The name of the player</param>
+        /// <param name="gameName">The name of the game</param>
+        /// <returns></returns>
         public async Task JoinGame(string user, string gameName)
         {
             try
             {
                 GameHub.AddPlayerToGame(user, gameName, Context.ConnectionId);
-                if (GameHub.PlayerIsAssassin(user, gameName))
-                    await JoinChatRoom(gameName + "Assassins");
                 await JoinChatRoom(gameName);
                 await Clients.Group(gameName).SendAsync("IJoinedGame", GameHub.GetGame(gameName));
                 await SendListToAll();
@@ -81,12 +91,18 @@ namespace MafiaGame.Game
             }
         }
 
+        /// <summary>
+        /// Method called by the client when he wants to leave a game.
+        /// If the remaining number of players in the game is 0, closes the game.
+        /// Announces all the clients about the change.
+        /// </summary>
+        /// <param name="user">The name of the player who is to leave</param>
+        /// <param name="gameName">The name of the game</param>
+        /// <returns></returns>
         public async Task LeaveGame(string user, string gameName)
         {
             try
             {
-                if (GameHub.PlayerIsAssassin(user, gameName))
-                    await LeaveChatRoom(gameName + "Assassins");
                 GameHub.RemovePlayerFromGame(user, gameName);
                 await LeaveChatRoom(gameName);
                 var game = GameHub.GetGame(gameName);
@@ -117,7 +133,14 @@ namespace MafiaGame.Game
             }
         }
 
-        public async Task PlayerReady(string user, string groupName)
+        /// <summary>
+        /// Method called by a client when he is ready for the game to start
+        /// If all the players are ready, starts the game and announces the players about their roles
+        /// </summary>
+        /// <param name="user">The name of the caller</param>
+        /// <param name="groupName">The name of the caller's group</param>
+        /// <returns></returns>
+        public async Task PlayerIsReady(string user, string groupName)
         {
             GameHub.GamesList.Find(x => x.Name == groupName).Players.Find(x => x.Name == user).Ready = true;
             var ok = true;
@@ -130,95 +153,159 @@ namespace MafiaGame.Game
 
             if (ok)
             {
-                await StartGame(groupName);
+                await Clients.Group(groupName).SendAsync("StartGame");
+                foreach (var player in GameHub.GetGame(groupName).Players)
+                {
+                    if (player.GetRole() == Type.Assassin)
+                        await TellPlayerHeIsAssassin(player);
+                    else if (player.GetRole() == Type.Cop)
+                        await TellPlayerHeIsCop(player);
+                }
             }
         }
 
-        public async Task StartGame(string groupName)
+        /// <summary>
+        /// Tells the player he is an assassin
+        /// </summary>
+        /// <param name="player">The player which is to be announced</param>
+        /// <returns></returns>
+        public async Task TellPlayerHeIsAssassin(Player player)
         {
-            await Clients.Group(groupName).SendAsync("StartGame");
-            var assassins = new List<Player>();
-            var targets = new List<Player>();
-            foreach (var player in GameHub.GetGame(groupName).Players)
-            {
-                if (player.GetRole() == Type.Assassin)
-                    assassins.Add(player);
-                else
-                    targets.Add(player);
-                if (player.GetRole() == Type.Cop)
-                    await Clients.Client(player.ConnectionId).SendAsync("YouAreCop");
-
-            }
-
-            await SendTargetsToAssassins(assassins, groupName);
+            await Clients.Client(player.ConnectionId).SendAsync("YouAreAssassin");
         }
 
+        /// <summary>
+        /// Tells the player he is a cop
+        /// </summary>
+        /// <param name="player">The player which is to be announced</param>
+        /// <returns></returns>
+        public async Task TellPlayerHeIsCop(Player player)
+        {
+            await Clients.Client(player.ConnectionId).SendAsync("YouAreCop");
+        }
+
+        /// <summary>
+        /// Sends the games list to all connected clients
+        /// </summary>
+        /// <returns></returns>
         public async Task SendListToAll()
         {
             await Clients.All.SendAsync("ReceiveGames", GameHub.GamesList);
         }
 
+        /// <summary>
+        /// Sends an error message to a client
+        /// </summary>
+        /// <param name="client">The client which is to receive the error message</param>
+        /// <param name="errMessage">The error message</param>
+        /// <returns></returns>
         public async Task SendError(IClientProxy client, string errMessage)
         {
             await client.SendAsync("ReceiveErr", errMessage);
         }
 
+        /// <summary>
+        /// Sends the games list to the caller
+        /// </summary>
+        /// <returns></returns>
         public async Task UserRequestsList()
         {
             await Clients.Caller.SendAsync("ReceiveGames", GameHub.GamesList);
         }
 
+        /// <summary>
+        /// Connects the caller to the chat room
+        /// </summary>
+        /// <param name="roomName">The name of the group which is to be joined</param>
+        /// <returns></returns>
         public async Task JoinChatRoom(string roomName)
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, roomName);
         }
 
+        /// <summary>
+        /// Disconnects the caller from the chat room
+        /// </summary>
+        /// <param name="roomName">The name of the group which is to be leaved</param>
+        /// <returns></returns>
         public async Task LeaveChatRoom(string roomName)
         {
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomName);
         }
 
-        public async Task SendTargetsToAssassins(List<Player> targets, string groupName)
-        {
-            await Clients.Group(groupName + "Assassins").SendAsync("GetTargets", targets);
-        }
-
+        /// <summary>
+        /// Kills the target player.
+        /// If the killed player is a cop or an assassin, announces the group about who won
+        /// </summary>
+        /// <param name="killer">The name of the killer</param>
+        /// <param name="target">The name of the target</param>
+        /// <param name="groupName">The name of the group in which the kill takes action</param>
+        /// <returns></returns>
         public async Task KillTarget(string killer, string target, string groupName)
         {
-            if (GameHub.GetGame(groupName).Night && GameHub.GetGame(groupName).PlayerIsAssassin(killer) ||
-                !GameHub.GetGame(groupName).Night && GameHub.GetGame(groupName).PlayerIsCop(killer))
+            try
             {
-                GameHub.GetGame(groupName).KillPlayer(target);
-                await Clients.Group(groupName).SendAsync("GetPlayers", GameHub.GetGame(groupName).Players);
-                if (!GameHub.GetGame(groupName).AssassinAlive)
-                    await CopWins(groupName);
-                else if (!GameHub.GetGame(groupName).CopAlive)
+                var game = GameHub.GetGame(groupName);
+                if (game.Night && game.PlayerIsAssassin(killer) || !game.Night && game.PlayerIsCop(killer))
                 {
-                    await AssassinsWin(groupName);
+                    game.KillPlayer(target);
+                    await Clients.Group(groupName).SendAsync("GetPlayers", GameHub.GetGame(groupName).Players);
+                    if (!GameHub.GetGame(groupName).AssassinAlive)
+                        await CopWins(groupName);
+                    else if (!GameHub.GetGame(groupName).CopAlive)
+                    {
+                        await AssassinsWin(groupName);
+                    }
+                    else
+                    {
+                        await DayChanged(groupName);
+                    }
                 }
                 else
                 {
-                    await DayChanged(groupName);
+                    var client = Clients.Caller;
+                    await SendError(client, "Is not your turn");
                 }
             }
-            else
+            catch (ArgumentException)
             {
-                await Clients.Caller.SendAsync("ReceiveErr", "Is not your turn");
+                var client = Clients.Caller;
+                await SendError(client, "Game does not exists");
+            }
+            catch (Exception)
+            {
+                var client = Clients.Caller;
+                await SendError(client, "Unexpected error");
             }
         }
 
+        /// <summary>
+        /// Announces the group that the assassin won
+        /// </summary>
+        /// <param name="groupName">The name of the group which is to be announced</param>
+        /// <returns></returns>
         public async Task AssassinsWin(string groupName)
         {
             GameHub.GamesList.Remove(GameHub.GetGame(groupName));
             await Clients.Group(groupName).SendAsync("AssassinsWin");
         }
 
+        /// <summary>
+        /// Announces the group that the civilians won
+        /// </summary>
+        /// <param name="groupName">The name of the group which is to be announced</param>
+        /// <returns></returns>
         public async Task CopWins(string groupName)
         {
             GameHub.GamesList.Remove(GameHub.GetGame(groupName));
             await Clients.Group(groupName).SendAsync("CopWins");
         }
 
+        /// <summary>
+        /// Announces the group that the day changed (from day to night or from night to day)
+        /// </summary>
+        /// <param name="groupName">The name of the group which is to be announced</param>
+        /// <returns></returns>
         public async Task DayChanged(string groupName)
         {
             await Clients.Group(groupName).SendAsync("DayChanged", GameHub.GetGame(groupName));

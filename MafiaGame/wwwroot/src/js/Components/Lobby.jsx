@@ -34,6 +34,8 @@ export default class Lobby extends Component {
         connection.on("ReceiveGames", list => this.setState({ gameList: list }));
         connection.on("ReceiveMessageGroup",
             (user, _, message) => this.setState({ messages: this.state.messages.concat(user + ": " + message) }));
+        connection.on("ReceiveMessage",
+            (user, _, message) => this.setState({ messages: this.state.messages.concat(user + ": " + message) }));
         connection.on("IJoinedGame", game => this.setState({ currentGame: game }));
         connection.on("GameReady",
             () => {
@@ -84,7 +86,7 @@ export default class Lobby extends Component {
     submitModal(e) {
         e.preventDefault();
         const connection = this.state.connection;
-        connection.invoke("PlayerReady", this.state.username, this.state.currentGame.name);
+        connection.invoke("PlayerIsReady", this.state.username, this.state.currentGame.name);
         this.toggleModal();
     }
 

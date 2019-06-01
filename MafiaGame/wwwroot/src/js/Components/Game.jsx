@@ -24,14 +24,13 @@ export default class Game extends React.Component {
     componentDidMount() {
         this.state.connection.on("ReceiveMessageGroup",
             (user, _, message) => this.setState({ messages: this.state.messages.concat(user + ": " + message) }));
-        this.state.connection.on("GetTargets",
-            (targets) => this.setState({
-                targets: targets,
-                isAssassin: true
-            }));
         this.state.connection.on("YouAreCop",
             () => this.setState({
                 isCop: true
+            }));
+        this.state.connection.on("YouAreAssassin",
+            () => this.setState({
+                isAssassin: true
             }));
         this.state.connection.on("AssassinsWin", () => this.setState({ gameEnded: true, winMessage: "Assassins won" }));
         this.state.connection.on("CopWins", () => this.setState({ gameEnded: true, winMessage: "Civilians won" }));

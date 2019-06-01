@@ -3,15 +3,22 @@ using System.Collections.Generic;
 
 namespace MafiaGame.Game
 {
+    /// <summary>
+    /// The hub which contains the game rooms
+    /// </summary>
     public class GameHub
     {
-        public List<Game> GamesList { get; }
+        /// <summary>
+        /// The list of games
+        /// </summary>
+        public List<Game> GamesList { get; } = new List<Game>();
 
-        public GameHub()
-        {
-            GamesList = new List<Game>();
-        }
-
+        /// <summary>
+        /// Creates a new game
+        /// </summary>
+        /// <param name="playerName">The creator's name</param>
+        /// <param name="gameName">The game's name</param>
+        /// <param name="connectionId">The creator's connection id</param>
         public void CreateNewGame(string playerName, string gameName, string connectionId)
         {
             if (GamesList.Exists(x => x.Name == gameName))
@@ -19,6 +26,12 @@ namespace MafiaGame.Game
             GamesList.Add(new Game(playerName, gameName, connectionId));
         }
 
+        /// <summary>
+        /// Adds a player to the game
+        /// </summary>
+        /// <param name="playerName">The player's game</param>
+        /// <param name="gameName">The game's name</param>
+        /// <param name="connectionId">The player's connection id</param>
         public void AddPlayerToGame(string playerName, string gameName, string connectionId)
         {
             var game = GamesList.Find(x => x.Name == gameName);
@@ -27,6 +40,11 @@ namespace MafiaGame.Game
             game.AddPlayer(playerName, connectionId);
         }
 
+        /// <summary>
+        /// Removes a player from a game
+        /// </summary>
+        /// <param name="playerName">The player's name</param>
+        /// <param name="gameName">The game's name</param>
         public void RemovePlayerFromGame(string playerName, string gameName)
         {
             var game = GamesList.Find(x => x.Name == gameName);
@@ -35,6 +53,12 @@ namespace MafiaGame.Game
             game.RemovePlayer(playerName);
         }
 
+        /// <summary>
+        /// Returns true if the player is an assassin
+        /// </summary>
+        /// <param name="playerName">The name of the player</param>
+        /// <param name="gameName">The name of the game</param>
+        /// <returns></returns>
         public bool PlayerIsAssassin(string playerName, string gameName)
         {
             var game = GamesList.Find(x => x.Name == gameName);
@@ -42,14 +66,12 @@ namespace MafiaGame.Game
                 throw new ArgumentException("There is no game with this name", gameName);
             return game.PlayerIsAssassin(playerName);
         }
-        public bool PlayerIsCop(string playerName, string gameName)
-        {
-            var game = GamesList.Find(x => x.Name == gameName);
-            if (game == null)
-                throw new ArgumentException("There is no game with this name", gameName);
-            return game.PlayerIsCop(playerName);
-        }
 
+        /// <summary>
+        /// Return a game by it's name
+        /// </summary>
+        /// <param name="gameName">The name of the game</param>
+        /// <returns></returns>
         public Game GetGame(string gameName)
         {
             var game = GamesList.Find(x => x.Name == gameName);
@@ -59,6 +81,9 @@ namespace MafiaGame.Game
         }
     }
 
+    /// <summary>
+    /// The class which defines a game room
+    /// </summary>
     public class Game
     {
         public string Name { get; }
@@ -70,6 +95,12 @@ namespace MafiaGame.Game
         public bool CopAlive { get; set; }
         public bool Night { get; set; }
 
+        /// <summary>
+        /// Creates a new game
+        /// </summary>
+        /// <param name="firstPlayer">The name of the game's creator</param>
+        /// <param name="roomName">The name of the game which is to be created</param>
+        /// <param name="connectionId">The connection id of the game's creator</param>
         public Game(string firstPlayer, string roomName, string connectionId)
         {
             Name = roomName;
@@ -86,6 +117,11 @@ namespace MafiaGame.Game
             CopAlive = true;
         }
 
+        /// <summary>
+        /// Adds a player to the game
+        /// </summary>
+        /// <param name="name">The name of the player which is to be added</param>
+        /// <param name="connectionId">The connection id of the player</param>
         public void AddPlayer(string name, string connectionId)
         {
             if (PlayersLimit == 0)
@@ -100,6 +136,10 @@ namespace MafiaGame.Game
             _remainingRoles.RemoveAt(index);
         }
 
+        /// <summary>
+        /// Removes a player from the game
+        /// </summary>
+        /// <param name="name">The name of the player which is to be removed</param>
         public void RemovePlayer(string name)
         {
             var index = Players.FindIndex(x => x.Name == name);
@@ -110,6 +150,12 @@ namespace MafiaGame.Game
             PlayersLimit++;
         }
 
+        /// <summary>
+        /// Toggles the alive status of the player.
+        /// Toggles the alive status of the cop or assassin in the case that the killed one is a cop or assassin.
+        /// Changes the night status.
+        /// </summary>
+        /// <param name="name">The name of the target</param>
         public void KillPlayer(string name)
         {
             var player = Players.Find(x => x.Name == name);
@@ -123,6 +169,11 @@ namespace MafiaGame.Game
                 CopAlive = false;
         }
 
+        /// <summary>
+        /// Returns true if the player is an assassin
+        /// </summary>
+        /// <param name="name">The name of the player</param>
+        /// <returns></returns>
         public bool PlayerIsAssassin(string name)
         {
             var player = Players.Find(x => x.Name == name);
@@ -130,6 +181,12 @@ namespace MafiaGame.Game
                 throw new ArgumentException("There is no player with this name", name);
             return player.GetRole() == Type.Assassin;
         }
+
+        /// <summary>
+        /// Returns true if the player is a cop
+        /// </summary>
+        /// <param name="name">The name of the player</param>
+        /// <returns></returns>
         public bool PlayerIsCop(string name)
         {
             var player = Players.Find(x => x.Name == name);
@@ -140,6 +197,9 @@ namespace MafiaGame.Game
     }
 
 
+    /// <summary>
+    /// The class which defines a player
+    /// </summary>
     public class Player
     {
         public string Name { get; }
@@ -148,6 +208,12 @@ namespace MafiaGame.Game
         public string ConnectionId;
         public bool Ready { get; set; }
 
+        /// <summary>
+        /// Creates a new player
+        /// </summary>
+        /// <param name="name">The name of the player</param>
+        /// <param name="role">The role of the player</param>
+        /// <param name="connectionId">The connection id of the player</param>
         public Player(string name, Type role, string connectionId)
         {
             Name = name;
@@ -163,6 +229,9 @@ namespace MafiaGame.Game
         }
     }
 
+    /// <summary>
+    /// Types of possible roles for the players
+    /// </summary>
     public enum Type
     {
         Assassin,
